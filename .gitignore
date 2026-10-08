@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.venv/
+# your own pages, readings, crops and results never belong in this repo
+work/
+data/
