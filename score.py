@@ -37,7 +37,8 @@ def main() -> None:
         for i, s in enumerate(data["spots"]):
             if s["source"] != t["source"] or s["page"] != t["page"]:
                 continue
-            ctx = [s["left"] + x + s["right"] for x in [s["final"]] + s["alts"]]
+            # lint spots keep the raw text, reader spots are normalized: normalize both the same way
+            ctx = [core.normalize(s["left"] + x + s["right"], True) for x in [s["final"]] + s["alts"]]
             if (key and any(key in c for c in ctx)) or lcs(cur, ctx[0]) >= min(4, len(cur)):
                 hits.append(verdicts.get(i, "human"))
         in_region = any(r["source"] == t["source"] and r["page"] == t["page"] and t["current"] in r["text"]

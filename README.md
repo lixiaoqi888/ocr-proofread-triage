@@ -112,7 +112,10 @@ page).
 
 - ～ and ~ are not merged: the book prints the full-width ～, so a half-width ~ in the transcription is an error;
 - all minus signs and dashes become one "-" instead of being deleted. Our first version deleted "-", so 850-300 no
-  longer matched a reader's 850—300, and false alarms piled up.
+  longer matched a reader's 850—300, and false alarms piled up;
+- a reader's half-width ~ counts as the printed ～ (readers output ~ all the time); only the transcription's own width
+  is checked, by the lint. A dash that a reader read as the character 一 is not reported either; the lint checks real
+  misuse.
 
 **Five sources of spots:**
 
@@ -126,7 +129,8 @@ page).
    - a space before a Chinese mark: `表3-2 ，`
    - a Chinese character, a space, then a digit: `大约 120`
    - a space after an ellipsis
-   - a long dash used as a minus between digits: `8—3=5`
+   - a long dash used as a minus between digits: `8—3=5`, or the character 一 used that way: `8一3=5`
+   - a hyphen between two words: `甲地-乙地` (print joins them with the dash —)
    - a half-width ~ and half-width punctuation (except inside numbers)
    - excluded: the unreadable mark `[?]`, time ranges `11:30—12:00`, handwriting lines and markup lines
 3. **Text no reader produced** (`core.unread`): transcription text that none of the three readers produced — mostly
@@ -197,7 +201,7 @@ answer key.
 |---|---|---|---|---|---|
 | Round 1 | 102 (86%) | 66 | 3 | 13 | 1.24 per page, plus 107 student-work tables |
 | Round 2 (rules added) | 115 (97%) | 68 | 2 | 1 | 1.77 per page, plus 107 tables |
-| This repo's code | 115 (97%) | 68 | 2 | 1 | 1.86 per page, plus 114 must-see regions |
+| This repo's code | 116 (98%) | 69 | 2 | 0 | 1.77 per page, plus 114 must-see regions |
 
 **Please note:**
 
@@ -205,16 +209,16 @@ answer key.
   level should be measured on fresh data.
 - **The answer key contains only errors the AI review found.** Errors it missed are not in it, so this measures "does
   it find what the review found", not an absolute recall.
-- **About 40% of "likely wrong" spots are real errors** (68/158 in the experiment scripts, 68/170 with this repo's
-  code). Some of the rest, which the review did not report, may be errors it missed; we have not checked them all.
+- **About half of the "likely wrong" spots are real errors** (68/158 in the experiment scripts, 69/138 with this
+  repo's code). Some of the rest, which the review did not report, may be errors it missed; we have not checked them all.
 - **The 3 spots round 2 still lost:**
   - the first 拆叠: the model and the two older readers all read 折叠, 3 against 1, only RapidOCR was right;
   - one spot in a flow chart: every reader read the boxes in a different order, so the diff could not line up;
   - one minus typed as a long dash: the first one on the page was caught by the lint, the second was not; not yet
     investigated.
-- This repo's code is a cleaned-up, general version of the experiment scripts, re-run on the same data: the routed,
-  wrongly released and missed errors are exactly the same; because frequent confusions are now learned per book, there
-  are slightly more spots to look at (1.86 per page).
+- This repo's code is a cleaned-up, general version of the experiment scripts, re-run on the same data. It also knows
+  the range and dash symbols (see Lesson 6), which removed many false alarms: 1.77 spots per page. The "5—1=4" dash
+  above is caught by the lint; the experiment's scoring had simply failed to match it. The two other losses remain.
 
 ## Dead ends
 
@@ -242,6 +246,11 @@ answer key.
    the character was 入, and the finding was withdrawn. RapidOCR reads 入 as 人 89 times in this book.
 5. **Validate every rule on known errors, then look at the noise it adds.** Round 2 raised routing from 86% to 97%
    and the number of spots by 40%. Choose that trade-off for your own needs.
+6. **Know the symbols, and show the reviewer the original characters.** In Chinese maths text ～ means "to" (1～10 is
+   1 to 10), the dash — joins a sequence or a route (今天—明天—后天, 甲地—乙地), —— is an explanatory dash, and in
+   our transcription - is the minus sign. Readers routinely turn ～ into ~ and — into 一, which floods the queue unless
+   the rules know these symbols. Our first review page also showed the normalized text, so every dash appeared as
+   "-" and a reviewer marked correct dashes as errors; a page for people must show the characters as transcribed.
 
 ## Limits
 
@@ -249,7 +258,7 @@ answer key.
   conventions (markers like "[页眉]" and "手写："); adjust the constants at the top of `core.py` for other data.
 - Text inside flow charts and diagrams: once the reading order is scrambled, the diff cannot line up; for now it only
   reaches a person through "text no reader produced".
-- There is still a fair amount to look at (about 1.9 spots per page); it just changes from "read every page top to
+- There is still a fair amount to look at (about 1.8 spots per page); it just changes from "read every page top to
   bottom" to "look at small crops".
 - The vote leans on the model's copy; with another model, recalibrate on known errors first.
 
@@ -260,7 +269,7 @@ answer key.
   about 1,000 crops in 15–20 minutes. Re-runs reuse cached reads by image hash.
 - For comparison: a page-by-page review by a top-tier AI model of the same 41 segments costs about 41 × USD 3.4 ≈ USD 140, often
   with over a hundred turns per segment.
-- What a person or a strong model finally looks at: about 1.9 spots per page, mostly small crops.
+- What a person or a strong model finally looks at: about 1.8 spots per page, mostly small crops.
 
 ## Quick start
 

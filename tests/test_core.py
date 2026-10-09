@@ -7,8 +7,10 @@ import core  # noqa: E402
 
 
 def test_normalize_keeps_what_matters():
-    assert core.normalize("第2～4题", False) != core.normalize("第2~4题", False)      # tilde width stays visible
+    assert core.normalize("第2～4题", True) != core.normalize("第2~4题", True)        # tilde width stays visible
     assert core.normalize("850-300", False) == core.normalize("850—300", False)      # all dashes are one minus
+    assert core.normalize("1~10", False) == core.normalize("1～10", True)           # a reader's ~ matches a printed ～
+    assert core.normalize("1~10", True) != core.normalize("1～10", True)            # but the transcription's width counts
     assert core.normalize("例如, (1)", False) == core.normalize("例如，（1）", False)   # comma/bracket width ignored
     assert core.normalize("[页眉] 第三单元\n正文", True) == "正文"                    # markup dropped from transcription
 
@@ -19,6 +21,10 @@ def test_compare_close_errors_do_not_hide_each_other():
     diffs = [(d["final"], d["alt"], d["kind"]) for d in core.compare(bad, reading, reading)]
     assert diffs == [(".", "：", "final-differs-from-both"), (".", "：", "final-differs-from-both")], diffs
     assert core.compare(reading, reading, reading) == []
+
+
+def test_compare_ignores_dash_read_as_yi():
+    assert core.compare("保定-石家庄的路程", "保定一石家庄的路程", "保定一石家庄的路程") == []
 
 
 def test_compare_finds_a_dropped_character():
@@ -32,6 +38,9 @@ def test_lint_rules():
     assert hits("参见表3-2 ，然后") == ["2 ，"]
     assert hits("大约 120天") == ["约 1"]
     assert hits("写成“8—3=5”") == ["8—3"]
+    assert hits("写成8一3=5") == ["8一3"]                       # the character 一 used as a minus
+    assert hits("路线是甲地-乙地") == ["地-乙"]                 # hyphen between words; print uses —
+    assert hits("路线是甲地—乙地") == []
     assert hits("一共有12个，[?]看不清") == []                  # unreadable mark is not a half-width "?"
     assert hits("11:30—12:00 午饭") == []                       # time range, not a minus
     assert hits("手写：1000-92 ≈ 900") == []                    # handwriting keeps its own spacing

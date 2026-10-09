@@ -30,8 +30,8 @@ T = {
         "ok": "Auto-OK", "ok_note": "model + 1 reader agree", "wrong": "Likely wrong",
         "wrong_note": "shown first", "human": "Human", "human_note": "everything else",
         "r_title": "Known errors routed for review", "r_sub": "984 pages, 118 errors found earlier by a page-by-page AI review",
-        "r1": "Whole-page check by a vision model*", "r2": "Round 1 (this method)", "r3": "Round 2 / this repo",
-        "r_foot": "* small test: 3 segments, 83 pages, 16 errors. Round 2 rules were tuned on round-1 misses, so 97% is optimistic.",
+        "r1": "Whole-page check by a vision model*", "r2": "Round 1 (this method)", "r3": "This repo's code",
+        "r_foot": "* small test: 3 segments, 83 pages, 16 errors. Later rules were tuned on round-1 misses, so 98% is optimistic.",
         "s_title": "Where the 118 errors ended up (this repo)", "s1": "Likely wrong", "s2": "Human", "s3": "Auto-OK (missed)",
         "s4": "Not found", "per_page": "spots to look at per page",
         "ex_title": "One spot, judged", "ex_crop": "Crop from the page (enlarged)", "ex_trans": "Transcription",
@@ -51,8 +51,8 @@ T = {
         "ok": "自动放行", "ok_note": "模型和另一读者都同意", "wrong": "很可能有错",
         "wrong_note": "排在最前面看", "human": "交给人看", "human_note": "其余情况",
         "r_title": "已知错误被送去复核的比例", "r_sub": "984 页，118 处错误（来自 AI 模型逐页对图审核）",
-        "r1": "视觉大模型整页挑错*", "r2": "第一轮（本方法）", "r3": "第二轮 / 本仓库代码",
-        "r_foot": "* 小测试：3 段、83 页、16 处错误。第二轮规则是看着第一轮漏网补的，97% 偏乐观。",
+        "r1": "视觉大模型整页挑错*", "r2": "第一轮（本方法）", "r3": "本仓库代码",
+        "r_foot": "* 小测试：3 段、83 页、16 处错误。后来的规则是看着第一轮漏网补的，98% 偏乐观。",
         "s_title": "118 处错误的去向（本仓库代码）", "s1": "很可能有错", "s2": "交给人看", "s3": "误放行",
         "s4": "没找到", "per_page": "每页要看的处数",
         "ex_title": "一处可疑的判断过程", "ex_crop": "从原图裁出（已放大）", "ex_trans": "转写稿",
@@ -121,7 +121,7 @@ def pipeline(t):
 
 def results(t):
     b = [text(20, 34, t["r_title"], 18, INK, 700), text(20, 58, t["r_sub"], 13, MUTED)]
-    rows = [(t["r1"], 4 / 16, "4 / 16", RED), (t["r2"], 102 / 118, "102 / 118", AMBER), (t["r3"], 115 / 118, "115 / 118", GREEN)]
+    rows = [(t["r1"], 4 / 16, "4 / 16", RED), (t["r2"], 102 / 118, "102 / 118", AMBER), (t["r3"], 116 / 118, "116 / 118", GREEN)]
     x0, W = 300, 520
     for i, (lab, v, n, c) in enumerate(rows):
         y = 84 + i * 46
@@ -132,7 +132,7 @@ def results(t):
     b += [text(20, 238, t["r_foot"], 12, MUTED)]
     # stacked bar: where the 118 errors went
     b += [text(20, 284, t["s_title"], 16, INK, 700)]
-    parts = [(t["s1"], 68, RED), (t["s2"], 47, AMBER), (t["s3"], 2, "#6b7280"), (t["s4"], 1, "#111827")]
+    parts = [(t["s1"], 69, RED), (t["s2"], 47, AMBER), (t["s3"], 2, "#6b7280"), (t["s4"], 0, "#111827")]
     x = 20
     for lab, n, c in parts:
         w = 920 * n / 118
@@ -142,8 +142,8 @@ def results(t):
     for lab, n, c in parts:
         b += [box(lx, 348, 14, 14, c, c, 3, 0), text(lx + 20, 360, f"{lab}  {n}", 13)]
         lx += 210
-    b += [text(20, 400, f"{t['per_page']}:  round 1 → 1.24   |   round 2 → 1.77   |   this repo → 1.86" if t is T["en"]
-               else f"{t['per_page']}：第一轮 1.24  ｜  第二轮 1.77  ｜  本仓库代码 1.86", 13, MUTED)]
+    b += [text(20, 400, f"{t['per_page']}:  round 1 → 1.24   |   round 2 → 1.77   |   this repo → 1.77" if t is T["en"]
+               else f"{t['per_page']}：第一轮 1.24  ｜  第二轮 1.77  ｜  本仓库代码 1.77", 13, MUTED)]
     return svg(960, 420, b)
 
 

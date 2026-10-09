@@ -41,6 +41,8 @@ def normalize(text: str, is_final: bool) -> str:
     """Remove what readers format differently (spaces, table pipes, LaTeX, quote style, half/full-width
     commas and brackets) but keep what matters: ～ versus ~, and minus signs (every dash becomes "-")."""
     text = DASH_RULE.sub("", text)
+    if not is_final:   # readers often output the half-width ~ for a printed ～; only the transcription's width matters
+        text = text.replace("~", "～")
     text = text.replace("~", "\ue000").replace("～", "\ue001")
     text = DASH.sub("\ue002", text)
     if is_final:
@@ -74,6 +76,8 @@ def compare(final: str, reader: str, witness: str) -> list[dict]:
         fin, alt = final[i1:i2], reader[j1:j2]
         if max(len(fin), len(alt)) > MAX_SPAN:
             continue
+        if {fin, alt} == {"-", "一"}:   # readers read a printed dash — as the character 一; lint checks real misuse
+            continue
         prev_i, prev_j = (ops[k - 1][2], ops[k - 1][4]) if k else (0, 0)
         next_i, next_j = (ops[k + 1][1], ops[k + 1][3]) if k + 1 < len(ops) else (len(final), len(reader))
         nl, nr = min(CONTEXT, i1 - prev_i, j1 - prev_j), min(CONTEXT, next_i - i2, next_j - j2)
@@ -100,6 +104,8 @@ LINT = re.compile(
     r"|[\u4e00-\u9fff][ 　]+[0-9]"                                                  # CJK, space, digit (大约 120)
     r"|…[ 　]+\S"                                                                    # space after an ellipsis
     r"|[0-9][—－–−][0-9]"                                                            # minus typed as a dash (8—3=5)
+    r"|[0-9]一[0-9]"                                                                 # the character 一 used as a minus
+    r"|[\u4e00-\u9fff]-[\u4e00-\u9fff]"                                             # hyphen between words; print uses —
     r"|~"                                                                            # half-width tilde; print uses ～
     r"|(?<![0-9])[,;:?!]|[,;:?!](?![0-9])"                                           # half-width marks outside numbers
 )
